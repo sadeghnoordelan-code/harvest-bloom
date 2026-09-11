@@ -1,0 +1,8 @@
+# Normalise to LF in the repository; checkouts still get native endings.
+* text=auto eol=lf
+
+# Binary assets — never touch these.
+*.png binary
+*.webp binary
+*.jpg binary
+*.mp4 binary

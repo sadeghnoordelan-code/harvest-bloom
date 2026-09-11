@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>HARVEST BLOOM — asset cutout</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        margin: 0; padding: 40px; background: #faf9f6; color: #202020;
+        font: 15px/1.6 ui-sans-serif, system-ui, sans-serif;
+      }
+      h1 { font-size: 18px; letter-spacing: .14em; text-transform: uppercase; font-weight: 500; }
+      p { max-width: 62ch; color: #5a5a5a; }
+      button {
+        font: inherit; letter-spacing: .1em; text-transform: uppercase; font-size: 12px;
+        background: #64151c; color: #faf9f6; border: 0; padding: 14px 26px; cursor: pointer;
+      }
+      button[disabled] { opacity: .5; cursor: default; }
+      pre { background: #fff; border: 1px solid #e6e2da; padding: 16px; overflow: auto; font-size: 13px; }
+      .sheet { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 26px; }
+      .sheet figure { margin: 0; width: 220px; }
+      .sheet img {
+        width: 100%; display: block; background:
+          conic-gradient(#eeebe3 25%, #fff 0 50%, #eeebe3 0 75%, #fff 0) 0 0 / 18px 18px;
+      }
+      .sheet figcaption { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>Product cutout</h1>
+    <p>
+      Lifts the six pack shots off their studio backdrop and writes
+      <code>public/products/*.webp</code> plus <code>public/brand/emblem.webp</code>.
+      Every product is cropped to one shared box, so their relative scale is preserved.
+      Requires the dev server (the asset bridge serves the source photos and writes the results).
+    </p>
+    <p><button id="run">Regenerate assets</button></p>
+    <pre id="log">Idle.</pre>
+    <div class="sheet" id="sheet"></div>
+
+    <script type="module">
+      import { segment, alphaBounds, SETTINGS } from './cutout.js'
+
+      // Source poster -> product slug, read off the pack label in each image.
+      const MAP = {
+        '1787692864515.png': 'barberries',
+        '1787692946385.png': 'pistachio',
+        '1787692292824.png': 'walnut',
+        '1787692786510.png': 'hazelnut',
+        '1787692880838.png': 'almond',
+        '1787693033070.png': 'cashew',
+      }
+      const EMBLEM_FROM = 'barberries'
+
+      const log = document.getElementById('log')
+      const sheet = document.getElementById('sheet')
+      const say = (m) => { log.textContent += '\n' + m; log.scrollTop = log.scrollHeight }
+
+      async function load(name) {
+        const img = new Image()
+        img.src = '/__origin/' + name
+        await img.decode()
+        const W = img.naturalWidth
+        const H = img.naturalHeight
+        const c = document.createElement('canvas')
+        c.width = W; c.height = H
+        const ctx = c.getContext('2d', { willReadFrequently: true })
+        ctx.drawImage(img, 0, 0)
+        return { W, H, data: ctx.getImageData(0, 0, W, H).data }
+      }
+
+      function crop(W, H, rgba, box) {
+        const src = document.createElement('canvas')
+        src.width = W; src.height = H
+        src.getContext('2d').putImageData(new ImageData(rgba, W, H), 0, 0)
+        const [x0, y0, x1, y1] = box
+        const dst = document.createElement('canvas')
+        dst.width = x1 - x0; dst.height = y1 - y0
+        const c = dst.getContext('2d')
+        c.imageSmoothingQuality = 'high'
+        c.drawImage(src, x0, y0, x1 - x0, y1 - y0, 0, 0, dst.width, dst.height)
+        return dst
+      }
+
+      async function write(canvas, rel, type, quality) {
+        const blob = await new Promise((r) => canvas.toBlob(r, type, quality))
+        const buf = new Uint8Array(await blob.arrayBuffer())
+        let bin = ''
+        for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i])
+        const res = await fetch('/__write', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: rel, b64: btoa(bin) }),
+        })
+        return res.json()
+      }
+
+      document.getElementById('run').addEventListener('click', async (e) => {
+        e.target.disabled = true
+        log.textContent = 'Segmenting at threshold ' + SETTINGS.threshold + '…'
+        sheet.textContent = ''
+        const done = {}
+
+        for (const [file, slug] of Object.entries(MAP)) {
+          const image = await load(file)
+          const t0 = performance.now()
+          done[slug] = { image, ...segment(image) }
+          say(`${slug.padEnd(11)} box ${done[slug].productBox.join(',')}  ${Math.round(performance.now() - t0)}ms`)
+        }
+
+        // One shared crop box, so every pack keeps its true relative scale.
+        const boxes = Object.values(done).map((d) => d.productBox)
+        const U = [
+          Math.min(...boxes.map((b) => b[0])), Math.min(...boxes.map((b) => b[1])),
+          Math.max(...boxes.map((b) => b[2])), Math.max(...boxes.map((b) => b[3])),
+        ]
+        say(`shared crop ${U.join(',')}  ->  ${U[2] - U[0]}x${U[3] - U[1]}`)
+
+        for (const [slug, d] of Object.entries(done)) {
+          const cv = crop(d.image.W, d.image.H, d.product, U)
+          const r = await write(cv, `products/${slug}.webp`, 'image/webp', 0.9)
+          say(`${slug.padEnd(11)} ${cv.width}x${cv.height}  webp ${Math.round(r.bytes / 1024)}kb`)
+          const fig = document.createElement('figure')
+          fig.innerHTML = `<img src="${cv.toDataURL()}" alt=""><figcaption>${slug}</figcaption>`
+          sheet.append(fig)
+        }
+
+        const src = done[EMBLEM_FROM]
+        if (src?.emblem) {
+          const cv = crop(src.image.W, src.image.H, src.emblem, src.emblemBox)
+          const r = await write(cv, 'brand/emblem.webp', 'image/webp', 0.92)
+          say(`emblem      ${cv.width}x${cv.height}  webp ${Math.round(r.bytes / 1024)}kb`)
+          const fig = document.createElement('figure')
+          fig.innerHTML = `<img src="${cv.toDataURL()}" alt=""><figcaption>emblem</figcaption>`
+          sheet.append(fig)
+        }
+
+        say('Done. Hard-reload the site to pick the new assets up.')
+        e.target.disabled = false
+      })
+    </script>
+  </body>
+</html>

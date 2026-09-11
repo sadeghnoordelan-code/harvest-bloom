@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# build output
+harvest-bloom/dist/
+
+# Generated single-file build. Rebuild with `npm run build:single` in
+# harvest-bloom/ — it is ~7.4 MB and derived entirely from the source.
+harvest-bloom-preview.html
+
+# Working notes from a build session, not part of the product.
+harvest-bloom-build-record.html
+
+# Stray screen capture.
+check_sheet.png
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log

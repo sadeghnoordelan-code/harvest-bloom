@@ -1,0 +1,89 @@
+/* ------------------------------------------------------------------
+   HARVEST BLOOM design tokens
+
+   Four colours only:
+     warm white, deep barberry burgundy, charcoal, warm neutral grey.
+
+   Sections re-scope the *semantic* tokens below (--ink, --ink-soft,
+   --rule, --accent) rather than restating colours, which is how a light
+   section and a burgundy one share the same components untouched. The
+   surface tones are written as literal hex on purpose: a custom property
+   that referenced --burgundy would be re-resolved inside a section that
+   re-scopes --accent, and the background would move with it.
+   ------------------------------------------------------------------ */
+:root {
+  --ivory: #faf9f6;
+  --burgundy: #64151c;
+  --charcoal: #1a1a1a;
+  --sand: #b3a99c;
+
+  /* Wine surfaces, darkest to lightest. Literal, see note above. */
+  --wine-deep: #3a0c11;
+  --wine: #4c1016;
+  --wine-soft: #5d151d;
+  --wine-lift: #78242f;
+
+  /* Charcoal surfaces */
+  --coal-deep: #121213;
+  --coal: #1a1a1a;
+  --coal-lift: #2a2a2b;
+
+  /* Ivory surfaces */
+  --ivory-sunk: color-mix(in srgb, var(--ivory) 94%, var(--charcoal));
+  --ivory-veil: color-mix(in srgb, var(--ivory) 82%, transparent);
+  --sand-mist: color-mix(in srgb, var(--sand) 22%, var(--ivory));
+
+  /* ---- semantic, re-scoped per section ---- */
+  --ink: var(--charcoal);
+  --ink-soft: color-mix(in srgb, var(--charcoal) 62%, var(--ivory));
+  --ink-faint: color-mix(in srgb, var(--charcoal) 42%, var(--ivory));
+  --rule: color-mix(in srgb, var(--charcoal) 12%, transparent);
+  --rule-strong: color-mix(in srgb, var(--charcoal) 22%, transparent);
+  --accent: var(--burgundy);
+  --accent-ink: var(--ivory); /* type that sits on --accent */
+  --surface: var(--ivory);
+
+  --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+  --sans: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+
+  --shadow-lift: 0 30px 70px -30px color-mix(in srgb, var(--charcoal) 42%, transparent);
+  --shadow-deep: 0 60px 120px -40px color-mix(in srgb, var(--charcoal) 55%, transparent);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.44, 1);
+
+  --gutter: clamp(1.25rem, 5vw, 5.5rem);
+  --measure: 78rem;
+  --header-h: 4.75rem;
+}
+
+/* A section standing on wine. Only the semantic tokens move. */
+.on-wine {
+  --ink: var(--ivory);
+  --ink-soft: color-mix(in srgb, var(--ivory) 78%, var(--sand));
+  --ink-faint: color-mix(in srgb, var(--sand) 82%, var(--wine));
+  --rule: color-mix(in srgb, var(--ivory) 16%, transparent);
+  --rule-strong: color-mix(in srgb, var(--ivory) 32%, transparent);
+  --accent: var(--sand);
+  --accent-ink: var(--wine-deep);
+  --surface: var(--wine);
+  color: var(--ink);
+}
+
+/* A section standing on charcoal. */
+.on-coal {
+  --ink: var(--ivory);
+  --ink-soft: color-mix(in srgb, var(--ivory) 74%, var(--sand));
+  --ink-faint: color-mix(in srgb, var(--sand) 76%, var(--coal));
+  --rule: color-mix(in srgb, var(--ivory) 13%, transparent);
+  --rule-strong: color-mix(in srgb, var(--ivory) 26%, transparent);
+  --accent: var(--sand);
+  --accent-ink: var(--coal-deep);
+  --surface: var(--coal);
+  color: var(--ink);
+}
+
+@media (max-width: 760px) {
+  :root { --header-h: 3.9rem; }
+}

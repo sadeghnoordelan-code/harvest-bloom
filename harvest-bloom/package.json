@@ -1,0 +1,22 @@
+{
+  "name": "harvest-bloom",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "HARVEST BLOOM - premium dried fruit, nuts and barberry storefront",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "assets": "vite --mode assets --open /tools/cutout/index.html",
+    "build:single": "vite build && node tools/build-preview.mjs"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.0",
+    "vite": "^7.0.0"
+  }
+}

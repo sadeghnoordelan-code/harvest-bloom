@@ -39,11 +39,11 @@ export default function ProductLoop() {
 
   const trackRef = useScrollProgress(setProgress, pinRef)
 
-  // Short and stacked layouts still support a mouse wheel over the collection.
+  // The wheel changes products only over the cycle, leaving details free to scroll.
   // At either end, the gesture returns to ordinary page scrolling.
   useEffect(() => {
     if (pinned) return
-    const body = pinRef.current?.querySelector('.collection__body')
+    const body = stageRef.current
     if (!body) return
     let total = 0
     let last = 0
@@ -64,7 +64,7 @@ export default function ProductLoop() {
     }
     body.addEventListener('wheel', onWheel, { passive: false })
     return () => body.removeEventListener('wheel', onWheel)
-  }, [pinned, activeIndex, stepIndex])
+  }, [pinned, activeIndex, stepIndex, stageRef])
 
   // Weight is remembered per product for the length of the visit.
   const [weights, setWeights] = useState(() =>

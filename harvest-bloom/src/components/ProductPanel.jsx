@@ -15,8 +15,21 @@ export default function ProductPanel({ product, weights, setWeight, index, count
   const cart = useCart()
   const [added, setAdded] = useState(false)
   const timer = useRef(0)
+  const detailsRef = useRef(null)
 
   useEffect(() => () => clearTimeout(timer.current), [])
+  useEffect(() => {
+    const details = detailsRef.current
+    const onWheel = (event) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return
+      // Reading details must not advance the page-driven product cycle.
+      event.preventDefault()
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? details.clientHeight : 1
+      details.scrollTop += event.deltaY * unit
+    }
+    details.addEventListener('wheel', onWheel, { passive: false })
+    return () => details.removeEventListener('wheel', onWheel)
+  }, [product.id])
   useEffect(() => {
     setAdded(false)
     clearTimeout(timer.current)
@@ -33,46 +46,49 @@ export default function ProductPanel({ product, weights, setWeight, index, count
 
   return (
     <div className="panel" key={product.id} data-product-id={product.id}>
-      <header className="panel__head">
-        <p className="panel__count">
-          <span>{String(index + 1).padStart(2, '0')}</span>
-          <i />
-          <span>{String(count).padStart(2, '0')}</span>
+      <div className="panel__details" ref={detailsRef} tabIndex={0} role="region" aria-label={`${product.name} details`}>
+        <header className="panel__head">
+          <p className="panel__count">
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            <i />
+            <span>{String(count).padStart(2, '0')}</span>
+          </p>
+          {product.signature && <p className="panel__flag">Signature</p>}
+        </header>
+
+        <h3 className="panel__name">{product.name}</h3>
+        <p className="panel__native" lang="fa" dir="rtl">
+          {product.native}
         </p>
-        {product.signature && <p className="panel__flag">Signature</p>}
-      </header>
+        <p className="panel__tagline">{product.tagline}</p>
+        <p className="panel__desc">{product.description}</p>
 
-      <h3 className="panel__name">{product.name}</h3>
-      <p className="panel__native" lang="fa" dir="rtl">
-        {product.native}
-      </p>
-      <p className="panel__tagline">{product.tagline}</p>
-      <p className="panel__desc">{product.description}</p>
+        <dl className="panel__spec">
+          <div>
+            <dt>Origin</dt>
+            <dd>{product.origin}</dd>
+          </div>
+          <div>
+            <dt>Harvest</dt>
+            <dd>{product.harvest}</dd>
+          </div>
+          <div>
+            <dt>Grade</dt>
+            <dd>{product.grade}</dd>
+          </div>
+          <div>
+            <dt>Packaging</dt>
+            <dd>{product.packaging}</dd>
+          </div>
+        </dl>
 
-      <dl className="panel__spec">
-        <div>
-          <dt>Origin</dt>
-          <dd>{product.origin}</dd>
-        </div>
-        <div>
-          <dt>Harvest</dt>
-          <dd>{product.harvest}</dd>
-        </div>
-        <div>
-          <dt>Grade</dt>
-          <dd>{product.grade}</dd>
-        </div>
-        <div>
-          <dt>Packaging</dt>
-          <dd>{product.packaging}</dd>
-        </div>
-      </dl>
+        <ul className="panel__notes">
+          {product.notes.map((n) => (
+            <li key={n}>{n}</li>
+          ))}
+        </ul>
 
-      <ul className="panel__notes">
-        {product.notes.map((n) => (
-          <li key={n}>{n}</li>
-        ))}
-      </ul>
+      </div>
 
       <div className="panel__buy">
         <div className="panel__rate">

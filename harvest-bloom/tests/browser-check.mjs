@@ -7,7 +7,7 @@ const base = process.env.TEST_URL || 'http://127.0.0.1:4173'
 const output = new URL('../verification/', import.meta.url)
 await fs.mkdir(output, { recursive: true })
 const names = ['Barberries', 'Pistachios', 'Walnuts', 'Hazelnuts', 'Almonds', 'Cashews']
-const sizes = [[320,568],[390,844],[760,600],[768,1024],[1024,768],[1101,700],[1280,720],[1440,900],[1920,1080],[844,390]]
+const sizes = [[320,568],[390,844],[760,600],[768,1024],[1024,768],[1101,700],[1280,720],[1440,900],[1920,1080],[844,390]].filter(size=>!process.env.TEST_SIZES || process.env.TEST_SIZES.split(',').includes(size.join('x')))
 const engines = process.env.TEST_ENGINES === 'all' ? ['edge','webkit'] : [process.env.TEST_ENGINES || 'edge']
 const results = []
 for (const engine of engines) {

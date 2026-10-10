@@ -38,7 +38,7 @@ export function ringGeometry(w, h, layout) {
   const SIDE = 0.71
 
   if (layout === 'strip') {
-    const item = Math.min(w * 0.5, h * 0.44)
+    const item = Math.min(w * 0.5, h * 0.6)
     const rx = Math.max((w / 2) * 0.96 - (item * SIDE) / 2, 56)
     const ry = Math.max(Math.min(h * 0.13, (h / 2 - (item * REAR) / 2) / 2), 22)
     const lift = ry + (item * REAR) / 4 - item / 4

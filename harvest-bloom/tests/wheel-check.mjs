@@ -29,7 +29,7 @@ for(const engine of (process.env.TEST_ENGINE ? [process.env.TEST_ENGINE] : ['edg
    assert.equal(await p.locator('.panel__name').innerText(),products[i].name)
    assert.equal(await p.locator('.panel__desc').innerText(),products[i].description)
    assert.equal(await p.locator('.panel__rateValue').innerText(),formatMoney(products[i].pricePer100g))
-   if(width>760){
+   {
     await p.waitForFunction(() => {
      const item=document.querySelector('.loop__item[data-focused=true]')?.getBoundingClientRect()
      const panel=document.querySelector('.panel')?.getBoundingClientRect()
@@ -39,6 +39,15 @@ for(const engine of (process.env.TEST_ENGINE ? [process.env.TEST_ENGINE] : ['edg
     const panel=await p.locator('.panel').boundingBox()
     assert(Math.abs(item.y+item.height/2-panel.y-panel.height/2)<1,'product is not opposite its details: '+JSON.stringify({engine,width,height,index:i,item,panel,delta:item.y+item.height/2-panel.y-panel.height/2}))
    }
+   const layoutCheck=await p.evaluate(()=>{
+    const stage=document.querySelector('.loop__stage').getBoundingClientRect(),panel=document.querySelector('.panel').getBoundingClientRect()
+    const images=[...document.querySelectorAll('.loop__item')].filter(e=>parseFloat(e.style.opacity)>0.15).map(e=>e.querySelector('img').getBoundingClientRect()).filter(r=>r.bottom>stage.top && r.top<stage.bottom && r.left<stage.right)
+    const packsStayRight=images.every(r=>r.left>panel.right+4)
+    const focus=document.querySelector('.loop__item[data-focused=true]').getBoundingClientRect()
+    const noOverlap=images.every((a,i)=>images.slice(i+1).every(b=>a.right+4<=b.left || b.right+4<=a.left || a.bottom+4<=b.top || b.bottom+4<=a.top))
+    return {packsStayRight,noOverlap,rightFocus:focus.x+focus.width/2>innerWidth*0.7}
+   })
+   assert(layoutCheck.packsStayRight && layoutCheck.noOverlap && layoutCheck.rightFocus,'cycle location or image separation failed: '+JSON.stringify({engine,width,height,i,layoutCheck}))
    const field=p.locator('.panel .weight__input');const weightBox=await field.boundingBox();const addBox=await p.locator('.panel__add').boundingBox()
    assert(weightBox.y>=60 && addBox.y+addBox.height<=height+1,'weight and add controls must be visible together with the cycle: '+JSON.stringify({engine,width,height,weightBox,addBox}))
    const scrollBefore=await p.evaluate(()=>scrollY)

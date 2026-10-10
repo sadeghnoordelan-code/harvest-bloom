@@ -2312,3 +2312,43 @@ input {
   .panel__add { margin-top: 0.5rem; padding: 0.55rem 1rem; }
   .panel__rateValue, .panel__totalValue { font-size: 1.5rem; }
 }
+
+/* The cycle occupies the right column at every width; nothing bleeds into details. */
+.loop { overflow: hidden; isolation: isolate; }
+.loop--half .loop__nav {
+  left: 0.5rem; right: auto; top: 50%; bottom: auto;
+  transform: translateY(-50%); flex-direction: column;
+}
+.loop--half .loop__dots {
+  left: auto; right: 0.5rem; top: 50%; bottom: auto;
+  transform: translateY(-50%); flex-direction: column;
+}
+.loop--half .loop__dot span { display: none; }
+@media (max-width: 760px) {
+  .collection__body {
+    grid-template-columns: minmax(0, 56%) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .collection__panelCol, .loop { order: initial; min-width: 0; }
+  .loop__stage { height: 100%; min-height: 0; }
+  .panel__name { font-size: clamp(1.4rem, 4vw, 2rem); }
+  .panel__native { font-size: 0.75rem; }
+  .panel__head { flex-wrap: wrap; gap: 0.3rem; }
+  .panel__flag { font-size: 0.5rem; padding: 0.25rem 0.4rem; }
+  .panel__tagline { font-size: 1rem; }
+  .panel__controls { flex-direction: column; align-items: stretch; }
+  .panel__controls .weight { width: 100%; flex: initial; }
+  .panel__total { align-items: flex-start; }
+  .panel__rate { flex-wrap: wrap; gap: 0.2rem; }
+  .panel__rateUnit { font-size: 0.55rem; }
+  .panel__add { padding-inline: 0.3rem; font-size: 0.6rem; letter-spacing: 0.08em; }
+  .loop--half .loop__nav { left: 0; }
+  .loop--half .loop__dots { right: 0; }
+  .loop__navBtn { width: 1.6rem; height: 1.6rem; }
+  .loop__caption { font-size: 0.5rem; letter-spacing: 0.05em; }
+}
+
+.loop__stage { height: var(--collection-height); }
+.loop__band { mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent); }

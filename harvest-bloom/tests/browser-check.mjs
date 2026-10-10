@@ -116,7 +116,7 @@ try {
  await page.locator('.loop__dot').nth(2).click()
  await page.waitForFunction(()=>document.querySelector('.panel__name').textContent==='Walnuts')
  await page.setViewportSize({width:390,height:844})
- await page.waitForFunction(()=>document.querySelector('.loop').dataset.layout==='strip')
+ await page.waitForFunction(()=>document.querySelector('.loop').dataset.layout==='ring')
  await page.locator('.loop__dot').nth(5).tap()
  await page.waitForFunction(()=>document.querySelector('.panel__name').textContent==='Cashews')
  await page.addInitScript(()=>localStorage.setItem('harvest-bloom.cart.v1',JSON.stringify([{id:'__proto__',grams:200},{id:'walnut',grams:200},{id:'walnut',grams:300},{id:'unknown',grams:100}])))

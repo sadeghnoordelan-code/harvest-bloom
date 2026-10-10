@@ -26,7 +26,7 @@ const STEP_PX = 150
 export default function ProductLoop() {
   const isMobile = useIsMobile()
   const reduced = useReducedMotion()
-  const layout = isMobile ? 'strip' : 'ring'
+  const layout = 'ring'
   const pinRef = useRef(null)
 
   // Pinning only works where the panel and the ring sit side by side and the

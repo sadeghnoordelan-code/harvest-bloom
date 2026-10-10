@@ -24,8 +24,8 @@ const SUB_DT = 1 / 240
  * Where the band runs and where the packs sit on it, in stage coordinates whose
  * origin is the centre of the stage.
  *
- * ring: a half-ring. The circle's centre sits on the right edge of the stage,
- * so only its left half is on screen and the rest carries off the side.
+ * ring: a half-ring whose centre continues beyond the right edge of the stage.
+ * The visible arc and its focused pack stay within the right column.
  * strip: a wide, shallow arc with the focus at the top, for touch.
  */
 export function ringGeometry(w, h, layout) {
@@ -57,18 +57,17 @@ export function ringGeometry(w, h, layout) {
     }
   }
 
-  // The angular step is solved from where the neighbouring packs should land —
-  //   rise:   r·sin(step) = DROP·h
-  //   recede: r·(1-cos step) = BACK·w
-  // whose ratio gives tan(step/2) directly, and r follows from the rise.
-  const DROP = 0.4
-  const BACK = 0.105
-  const step = 2 * Math.atan((BACK * w) / (DROP * h))
-  const originalRadius = clamp((DROP * h) / Math.sin(step), 140, 1600)
-  const radiusLimit = w > 825 ? w - 225 : Math.min(w / 1.26, w - 75)
-  const r = Math.min(originalRadius, radiusLimit)
-  const cx = w / 2 // circle centre on the stage's right edge
-  const item = clamp(r * 0.52, 150, 420)
+  // Put the focus well inside the right column. The circle continues beyond
+  // the right edge, rather than pushing the selected pack toward the details.
+  const r = clamp(h * 0.7, 140, 1600)
+  const focusFraction = w < 220 ? 0.6 : 0.65
+  const item = Math.min(240, w * (w < 220 ? 0.55 : 0.34), h * 0.22)
+  // Size and angular spacing share the same radius, including narrow columns.
+  // Even halfway through a transition adjacent pack boxes have a clear gap.
+  const separation = Math.max(item * 1.55, h * 0.28)
+  const step = 2 * Math.asin(Math.min(separation / (2 * r), 0.85))
+  const cx = w * (focusFraction - 0.5) + r
+
   return {
     layout,
     w,
@@ -79,7 +78,7 @@ export function ringGeometry(w, h, layout) {
     rx: r,
     ry: r,
     step,
-    band: clamp(r * 0.34, 64, 260),
+    band: Math.min(clamp(r * 0.25, 32, 190), w * 0.38),
     at: (a) => ({ x: cx - r * Math.cos(a), y: r * Math.sin(a) }),
   }
 }

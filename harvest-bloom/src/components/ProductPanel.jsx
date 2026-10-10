@@ -15,21 +15,8 @@ export default function ProductPanel({ product, weights, setWeight, index, count
   const cart = useCart()
   const [added, setAdded] = useState(false)
   const timer = useRef(0)
-  const detailsRef = useRef(null)
 
   useEffect(() => () => clearTimeout(timer.current), [])
-  useEffect(() => {
-    const details = detailsRef.current
-    const onWheel = (event) => {
-      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return
-      // Reading details must not advance the page-driven product cycle.
-      event.preventDefault()
-      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? details.clientHeight : 1
-      details.scrollTop += event.deltaY * unit
-    }
-    details.addEventListener('wheel', onWheel, { passive: false })
-    return () => details.removeEventListener('wheel', onWheel)
-  }, [product.id])
   useEffect(() => {
     setAdded(false)
     clearTimeout(timer.current)
@@ -46,7 +33,7 @@ export default function ProductPanel({ product, weights, setWeight, index, count
 
   return (
     <div className="panel" key={product.id} data-product-id={product.id}>
-      <div className="panel__details" ref={detailsRef} tabIndex={0} role="region" aria-label={`${product.name} details`}>
+      <div className="panel__details" role="region" aria-label={`${product.name} details`}>
         <header className="panel__head">
           <p className="panel__count">
             <span>{String(index + 1).padStart(2, '0')}</span>

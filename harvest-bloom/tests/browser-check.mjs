@@ -42,9 +42,8 @@ for (const engine of engines) {
     assert(rect.top>=-1&&rect.bottom<=rect.stage+1,engine+' '+width+' image clipped vertically')
     if(pinned){const r=await page.locator('.panel__add').boundingBox();assert(r.y>=60&&r.y+r.height<=height+1,'pinned buy button unreachable')}
    }
-   const controls=await page.locator('.loop__nav,.loop__dots').evaluateAll(els=>els.map(e=>e.getBoundingClientRect().toJSON()))
-   const [a,b]=controls
-   assert(a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top,'arrows overlap product selectors')
+   assert.equal(await page.locator('.loop__nav').count(),0,'product arrows must be absent')
+   assert(await page.locator('.panel__details').evaluate(e=>getComputedStyle(e).overflowY==='visible'),'details must not have an internal scrollbar')
    await page.locator('.loop__stage').scrollIntoViewIfNeeded()
    if(!pinned){
     await page.locator('.loop__stage').focus()

@@ -204,32 +204,6 @@ export default function ProductLoop() {
                 ))}
               </div>
 
-              <div className="loop__nav">
-                <button
-                  type="button"
-                  className="loop__navBtn"
-                  onClick={() => step(-1)}
-                  disabled={activeIndex === 0}
-                  aria-label="Previous product"
-                >
-                  <svg viewBox="0 0 20 20" aria-hidden="true">
-                    <path d={layout === 'ring' ? 'M5 12.5 10 7l5 5.5' : 'M12.5 5 7 10l5.5 5'} />
-                  </svg>
-                </button>
-                <span className="loop__navRule" aria-hidden="true" />
-                <button
-                  type="button"
-                  className="loop__navBtn"
-                  onClick={() => step(1)}
-                  disabled={activeIndex === products.length - 1}
-                  aria-label="Next product"
-                >
-                  <svg viewBox="0 0 20 20" aria-hidden="true">
-                    <path d={layout === 'ring' ? 'M5 7.5 10 13l5-5.5' : 'M7.5 5 13 10l-5.5 5'} />
-                  </svg>
-                </button>
-              </div>
-
               <ol className="loop__dots" aria-label="Choose a product">
                 {products.map((p, i) => (
                   <li key={p.id}>

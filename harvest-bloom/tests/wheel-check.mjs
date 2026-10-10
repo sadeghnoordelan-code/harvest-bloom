@@ -55,10 +55,8 @@ for(const engine of (process.env.TEST_ENGINE ? [process.env.TEST_ENGINE] : ['edg
    assert.equal(await field.inputValue(),'300')
    assert.equal(await p.locator('.panel__totalValue').innerText(),formatMoney(products[i].pricePer100g*3))
    assert.equal(await p.evaluate(()=>scrollY),scrollBefore,'editing weight must not scroll away from the cycle')
-   const details=p.locator('.panel__details');const d=await details.boundingBox()
-   await p.mouse.move(d.x+d.width/2,d.y+d.height/2);await p.mouse.wheel(0,80);await p.waitForTimeout(200)
-   assert.equal(await p.locator('.panel').getAttribute('data-product-id'),products[i].id,'scrolling details must not switch products')
-   assert.equal(await p.evaluate(()=>scrollY),scrollBefore,'scrolling details must not move the collection off screen')
+   assert(await p.locator('.panel__details').evaluate(e=>getComputedStyle(e).overflowY==='visible' && e.scrollHeight<=e.clientHeight+1),'full details must be visible without internal scrolling')
+   assert.equal(await p.locator('.loop__nav').count(),0)
   }
   // Continuing after the last product must release ordinary page scrolling.
   let r=await p.locator('.loop__stage').boundingBox()

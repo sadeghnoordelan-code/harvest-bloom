@@ -399,6 +399,9 @@ input {
   background: var(--ivory);
   border-bottom: 1px solid var(--rule);
 }
+.hdr__sheet[hidden] {
+  display: none;
+}
 .hdr__sheet a {
   padding: 0.85rem 0;
   border-top: 1px solid var(--rule);
@@ -825,7 +828,7 @@ input {
 .loop__stage {
   position: relative;
   height: min(82vh, 760px);
-  touch-action: none;
+  touch-action: pan-y;
   cursor: grab;
   outline-offset: 8px;
 }
@@ -2082,10 +2085,11 @@ input {
     width: min(48vh, 400px);
   }
   .loop__nav {
+    left: auto;
     right: 50%;
     top: auto;
-    bottom: -3.2rem;
-    transform: translateX(50%) translateX(4.6rem);
+    bottom: -5.8rem;
+    transform: translateX(50%);
     flex-direction: row;
   }
   .loop__navRule {
@@ -2117,10 +2121,10 @@ input {
     display: none;
   }
   .loop__hint {
-    bottom: -5.4rem;
+    bottom: -7.5rem;
   }
   .collection__body {
-    gap: 7rem 0;
+    gap: 10rem 0;
   }
 
   .panel__spec {
@@ -2217,4 +2221,24 @@ input {
   .hero__hint i {
     animation: none;
   }
+}
+
+/* Keep anchor headings below the fixed navigation. */
+#story, #collection, #order, #contact {
+  scroll-margin-top: calc(var(--header-h) + 1rem);
+}
+.contact__big { overflow-wrap: anywhere; }
+@media (max-width: 360px) {
+  .hdr__inner { gap: 0.5rem; }
+  .hdr__brand { gap: 0.4rem; }
+  .hdr__word { font-size: 0.65rem; letter-spacing: 0.22em; }
+  .hdr__right { gap: 0.35rem; }
+}
+@media (max-height: 500px) {
+  .hero__copy { bottom: 2rem; }
+  .hero__title { font-size: clamp(2rem, 5vw, 3.1rem); }
+  .hero__eyebrow { margin-bottom: 0.6rem; }
+  .hero__body { margin-top: 0.7rem; font-size: 0.85rem; }
+  .hero__hint { display: none; }
+  .hdr__sheet { max-height: calc(100dvh - var(--header-h)); overflow-y: auto; }
 }

@@ -31,53 +31,28 @@ const SUB_DT = 1 / 240
 export function ringGeometry(w, h, layout) {
   if (!w || !h) return null
 
-  // Scale at three points of the depth curve below. A pack passes through every
-  // angle as the sequence advances, so the box has to hold the widest pack at
-  // each of them — reserve for the side pass as well as the focus and the rear.
-  const REAR = 0.52
-  const SIDE = 0.71
-
+  // Bound the focus by the available width and height, including its image.
+  // The old radius grew as the column narrowed and pushed the focus off screen.
   if (layout === 'strip') {
-    const item = Math.min(w * 0.5, h * 0.44)
-    const rx = Math.max((w / 2) * 0.96 - (item * SIDE) / 2, 56)
-    const ry = Math.max(Math.min(h * 0.13, (h / 2 - (item * REAR) / 2) / 2), 22)
-    const lift = ry + (item * REAR) / 4 - item / 4
+    const item = Math.min(w * 0.62, h * 0.7, 360)
+    const rx = Math.max(w * 0.76, item * 0.96)
+    const ry = h * 0.18
+    const lift = ry * 0.6
     return {
-      layout,
-      w,
-      h,
-      item,
-      cx: 0,
-      cy: ry - lift,
-      rx,
-      ry,
-      step: (Math.PI * 2) / 6,
-      band: clamp(Math.min(item * 0.44, ry * 1.15), 34, 150),
+      layout, w, h, item, cx: 0, cy: ry - lift, rx, ry,
+      step: Math.PI / 3,
+      band: clamp(ry * 0.75, 24, 70),
       at: (a) => ({ x: rx * Math.sin(a), y: ry * (1 - Math.cos(a)) - lift }),
     }
   }
 
-  // The angular step is solved from where the neighbouring packs should land —
-  //   rise:   r·sin(step) = DROP·h
-  //   recede: r·(1-cos step) = BACK·w
-  // whose ratio gives tan(step/2) directly, and r follows from the rise.
-  const DROP = 0.4
-  const BACK = 0.105
-  const step = 2 * Math.atan((BACK * w) / (DROP * h))
-  const r = clamp((DROP * h) / Math.sin(step), 140, 1600)
-  const cx = w / 2 // circle centre on the stage's right edge
-  const item = clamp(r * 0.52, 150, 420)
+  const r = Math.min(w * 0.65, h * 0.54)
+  const cx = w / 2
+  const item = Math.min(420, w * 0.48, h * 0.62)
   return {
-    layout,
-    w,
-    h,
-    item,
-    cx,
-    cy: 0,
-    rx: r,
-    ry: r,
-    step,
-    band: clamp(r * 0.34, 64, 260),
+    layout, w, h, item, cx, cy: 0, rx: r, ry: r,
+    step: 0.9,
+    band: clamp(r * 0.22, 36, 100),
     at: (a) => ({ x: cx - r * Math.cos(a), y: r * Math.sin(a) }),
   }
 }
@@ -124,7 +99,7 @@ export function useLoopEngine({ count, layout = 'ring', reduced = false, pinned 
       const r = el.getBoundingClientRect()
       const g = ringGeometry(r.width, r.height, layout)
       geomRef.current = g
-      setGeometry((prev) => (prev && g && prev.w === g.w && prev.h === g.h ? prev : g))
+      setGeometry((prev) => (prev && g && prev.w === g.w && prev.h === g.h && prev.layout === g.layout ? prev : g))
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -225,7 +200,6 @@ export function useLoopEngine({ count, layout = 'ring', reduced = false, pinned 
       startPos = pos.current
       start = axis(e)
       travelled = 0
-      el.setPointerCapture?.(pid)
       el.dataset.dragging = 'true'
     }
     const onMove = (e) => {
@@ -236,13 +210,16 @@ export function useLoopEngine({ count, layout = 'ring', reduced = false, pinned 
       // sequence has two ends now rather than wrapping.
       pos.current = clamp(startPos + (start - v) / DRAG_STEP, 0, count - 1)
       target.current = pos.current
-      if (travelled > CLICK_SLOP) e.preventDefault()
+      if (travelled > CLICK_SLOP) {
+        if (!el.hasPointerCapture?.(pid)) el.setPointerCapture?.(pid)
+        e.preventDefault()
+      }
     }
     const onUp = (e) => {
       if (!dragging.current || (pid !== null && e.pointerId !== pid)) return
       dragging.current = false
       el.dataset.dragging = 'false'
-      el.releasePointerCapture?.(pid)
+      if (el.hasPointerCapture?.(pid)) el.releasePointerCapture?.(pid)
       pid = null
       target.current = clamp(Math.round(pos.current), 0, count - 1)
       el.dataset.wasDrag = travelled > CLICK_SLOP ? 'true' : 'false'
@@ -252,11 +229,14 @@ export function useLoopEngine({ count, layout = 'ring', reduced = false, pinned 
     el.addEventListener('pointermove', onMove)
     el.addEventListener('pointerup', onUp)
     el.addEventListener('pointercancel', onUp)
+    el.addEventListener('lostpointercapture', onUp)
     return () => {
       el.removeEventListener('pointerdown', onDown)
       el.removeEventListener('pointermove', onMove)
       el.removeEventListener('pointerup', onUp)
       el.removeEventListener('pointercancel', onUp)
+      el.removeEventListener('lostpointercapture', onUp)
+      dragging.current = false
     }
   }, [count, layout, pinned])
 

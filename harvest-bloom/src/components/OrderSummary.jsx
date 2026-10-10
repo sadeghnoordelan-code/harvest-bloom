@@ -184,11 +184,10 @@ export default function OrderSummary() {
                       Payment is not connected on this build.
                     </p>
                     <p>
-                      Your order has been held as{' '}
+                      Your order reference is{' '}
                       <strong>{status.reference}</strong>. Nothing has been charged and no
-                      card details were requested. Connect a provider in{' '}
-                      <code>src/lib/payment.js</code> and this button will hand off to it
-                      unchanged.
+                      card details were requested. Your selection remains in your basket.
+                      Please contact us to arrange your order.
                     </p>
                   </>
                 ) : (

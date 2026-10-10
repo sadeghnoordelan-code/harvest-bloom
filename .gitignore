@@ -18,3 +18,8 @@ check_sheet.png
 .DS_Store
 Thumbs.db
 *.log
+
+# Browser verification outputs and local deployment metadata
+/harvest-bloom/verification/
+/before-*.png
+.vercel/

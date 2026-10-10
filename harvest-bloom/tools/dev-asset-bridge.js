@@ -18,6 +18,10 @@ import path from 'node:path'
  */
 export default function devAssetBridge({ root, originDir, mode = 'assets' }) {
   const publicDir = path.join(root, 'public')
+  const isInside = (base, dest) => {
+    const rel = path.relative(base, dest)
+    return rel !== '' && rel !== '..' && !rel.startsWith('..' + path.sep) && !path.isAbsolute(rel)
+  }
 
   return {
     name: 'harvest-bloom-dev-asset-bridge',
@@ -56,7 +60,7 @@ export default function devAssetBridge({ root, originDir, mode = 'assets' }) {
             try {
               for (const rel of JSON.parse(body).paths) {
                 const dest = path.resolve(root, rel)
-                if (!dest.startsWith(root)) throw new Error('outside the project')
+                if (!isInside(root, dest)) throw new Error('outside the project')
                 if (fs.existsSync(dest)) {
                   fs.unlinkSync(dest)
                   removed.push(rel)
@@ -81,7 +85,7 @@ export default function devAssetBridge({ root, originDir, mode = 'assets' }) {
             try {
               const { path: rel, b64 } = JSON.parse(body)
               const dest = path.resolve(publicDir, rel)
-              if (!dest.startsWith(publicDir)) throw new Error('outside public/')
+              if (!isInside(publicDir, dest)) throw new Error('outside public/')
               fs.mkdirSync(path.dirname(dest), { recursive: true })
               const buf = Buffer.from(b64, 'base64')
               fs.writeFileSync(dest, buf)

@@ -71,6 +71,8 @@ export default function HeroScrollVideo({ onSkip }) {
     if (!video) return
     let url = null
     let cancelled = false
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000)
 
     const fallback = () => {
       if (cancelled) return
@@ -80,7 +82,7 @@ export default function HeroScrollVideo({ onSkip }) {
 
     ;(async () => {
       try {
-        const res = await fetch('/hero.mp4')
+        const res = await fetch('/hero.mp4', { signal: controller.signal })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const total = Number(res.headers.get('content-length')) || 0
         if (!res.body || !total) {
@@ -105,11 +107,15 @@ export default function HeroScrollVideo({ onSkip }) {
         video.src = url
       } catch {
         fallback()
+      } finally {
+        clearTimeout(timeout)
       }
     })()
 
     return () => {
       cancelled = true
+      clearTimeout(timeout)
+      controller.abort()
       if (url) URL.revokeObjectURL(url)
     }
   }, [])
@@ -123,6 +129,7 @@ export default function HeroScrollVideo({ onSkip }) {
       seeking.current = false
     }
     const onLoaded = () => {
+      setFailed(false)
       setReady(true)
       // The clip is never played — scroll is the only thing that moves it. A
       // hair of a seek forces the first frame to decode and paint, which is all
@@ -250,7 +257,9 @@ export default function HeroScrollVideo({ onSkip }) {
       // The pin is one viewport tall, so the section is the scrub distance plus
       // that. Falls back to the vh figure until the clip's duration is known.
       style={
-        scrubPx
+        failed
+          ? { height: '100lvh' }
+          : scrubPx
           ? { '--hero-scroll': scrollVh, height: `calc(${scrubPx}px + 100lvh)` }
           : { '--hero-scroll': scrollVh }
       }

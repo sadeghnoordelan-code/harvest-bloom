@@ -94,6 +94,7 @@ export default function Atmosphere({ count = 14, tone = 'var(--sand)', className
     const canvas = canvasRef.current
     if (!host || !canvas) return
     const ctx = canvas.getContext('2d')
+    if (!ctx) return
 
     let raf = 0
     let bits = []
@@ -119,6 +120,7 @@ export default function Atmosphere({ count = 14, tone = 'var(--sand)', className
       canvas.style.width = `${w}px`
       canvas.style.height = `${h}px`
       bits = Array.from({ length: count }, (_, i) => seed(i, count, w, h))
+      if (reduced) draw(performance.now())
     }
 
     const draw = (now) => {
@@ -148,14 +150,14 @@ export default function Atmosphere({ count = 14, tone = 'var(--sand)', className
         ctx.fill(b.path)
         ctx.restore()
       }
-      raf = requestAnimationFrame(draw)
+      if (!reduced) raf = requestAnimationFrame(draw)
     }
 
     const start = () => {
       if (live) return
       live = true
       t0 = performance.now()
-      raf = requestAnimationFrame(draw)
+      if (!reduced) raf = requestAnimationFrame(draw)
     }
     const stop = () => {
       live = false

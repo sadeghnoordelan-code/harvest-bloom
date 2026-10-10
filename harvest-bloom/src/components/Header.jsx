@@ -47,10 +47,16 @@ export default function Header() {
     lastCount.current = cart.count
   }, [cart.count])
 
+  useEffect(() => {
+    const close = (e) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [])
+
   const jump = (href) => (e) => {
     e.preventDefault()
     setOpen(false)
-    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    document.querySelector(href)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
   }
 
   return (
@@ -98,6 +104,7 @@ export default function Header() {
             type="button"
             className="hdr__burger"
             aria-expanded={open}
+            aria-controls="mobile-navigation"
             aria-label={open ? 'Close menu' : 'Open menu'}
             onClick={() => setOpen((v) => !v)}
           >
@@ -107,13 +114,13 @@ export default function Header() {
         </div>
       </div>
 
-      <div className="hdr__sheet" hidden={!open}>
+      <nav id="mobile-navigation" className="hdr__sheet" aria-label="Mobile" hidden={!open}>
         {NAV.map((n) => (
           <a key={n.id} href={n.href} onClick={jump(n.href)}>
             {n.label}
           </a>
         ))}
-      </div>
+      </nav>
     </header>
   )
 }

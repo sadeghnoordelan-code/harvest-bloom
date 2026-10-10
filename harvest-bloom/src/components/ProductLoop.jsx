@@ -26,13 +26,14 @@ const STEP_PX = 150
 export default function ProductLoop() {
   const isMobile = useIsMobile()
   const reduced = useReducedMotion()
-  const layout = isMobile ? 'strip' : 'ring'
+  const stacked = useMediaQuery('(max-width: 1100px)')
+  const layout = stacked ? 'strip' : 'ring'
   const pinRef = useRef(null)
 
   // Pinning only works where the panel and the ring sit side by side and the
   // pair fits one viewport. Once they stack, the block is far taller than the
   // screen, and pinning it would put the add-to-order button out of reach.
-  const pinned = useMediaQuery('(min-width: 1101px)')
+  const pinned = useMediaQuery('(min-width: 1101px) and (min-height: 700px)')
 
   const { stageRef, itemRefs, activeIndex, geometry, setProgress, setIndex, consumedDrag } =
     useLoopEngine({ count: products.length, layout, reduced, pinned })
@@ -168,7 +169,7 @@ export default function ProductLoop() {
                       alt={`${p.name} in a HARVEST BLOOM stand pouch, beside a bowl of the loose product`}
                       width={IMAGE_SIZE.width}
                       height={IMAGE_SIZE.height}
-                      loading={i === 0 ? 'eager' : 'lazy'}
+                      loading="eager"
                       decoding="async"
                       draggable="false"
                     />
@@ -220,7 +221,7 @@ export default function ProductLoop() {
               </ol>
 
               <p className="loop__hint" aria-hidden="true">
-                {isMobile ? 'Swipe on, or tap a pack' : 'Scroll on, or click a pack'}
+                {pinned ? 'Scroll on, or choose a product' : isMobile ? 'Swipe on, or tap a pack' : 'Drag on, or choose a product'}
               </p>
             </div>
           </div>

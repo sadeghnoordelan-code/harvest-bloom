@@ -19,6 +19,7 @@ function reducer(state, action) {
       return { items: action.items }
 
     case 'add': {
+      if (!Object.hasOwn(productById, action.id)) return state
       const grams = normaliseGrams(action.grams)
       const existing = state.items.find((i) => i.id === action.id)
       if (!existing) return { items: [...state.items, { id: action.id, grams }] }
@@ -56,8 +57,14 @@ function readStored() {
     if (!raw) return null
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return null
+    const seen = new Set()
     return parsed
-      .filter((i) => i && productById[i.id] && Number.isFinite(i.grams))
+      .filter((i) => i && Object.hasOwn(productById, i.id) && Number.isFinite(i.grams))
+      .filter((i) => {
+        if (seen.has(i.id)) return false
+        seen.add(i.id)
+        return true
+      })
       .map((i) => ({ id: i.id, grams: normaliseGrams(i.grams) }))
   } catch {
     return null
@@ -65,12 +72,9 @@ function readStored() {
 }
 
 export function CartProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState)
-
-  useEffect(() => {
-    const stored = readStored()
-    if (stored?.length) dispatch({ type: 'hydrate', items: stored })
-  }, [])
+  const [state, dispatch] = useReducer(reducer, initialState, () => ({
+    items: readStored() ?? [],
+  }))
 
   useEffect(() => {
     try {

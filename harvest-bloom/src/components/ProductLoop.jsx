@@ -26,8 +26,7 @@ const STEP_PX = 150
 export default function ProductLoop() {
   const isMobile = useIsMobile()
   const reduced = useReducedMotion()
-  const stacked = useMediaQuery('(max-width: 1100px)')
-  const layout = stacked ? 'strip' : 'ring'
+  const layout = isMobile ? 'strip' : 'ring'
   const pinRef = useRef(null)
 
   // Pinning only works where the panel and the ring sit side by side and the
@@ -221,7 +220,7 @@ export default function ProductLoop() {
               </ol>
 
               <p className="loop__hint" aria-hidden="true">
-                {pinned ? 'Scroll on, or choose a product' : isMobile ? 'Swipe on, or tap a pack' : 'Drag on, or choose a product'}
+                {isMobile ? 'Swipe on, or tap a pack' : 'Scroll on, or click a pack'}
               </p>
             </div>
           </div>

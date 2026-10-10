@@ -50,14 +50,15 @@ for (const engine of engines) {
     await page.locator('.loop__stage').focus()
     await page.keyboard.press('Home')
     await page.waitForFunction(()=>document.querySelector('.panel__name').textContent==='Barberries')
-    await page.keyboard.press('ArrowRight')
+    await page.keyboard.press(await page.locator('.loop').getAttribute('data-layout') === 'ring' ? 'ArrowDown' : 'ArrowRight')
     await page.waitForFunction(()=>document.querySelector('.panel__name').textContent==='Pistachios')
     await page.locator('.loop__dot').nth(0).click()
     await page.waitForFunction(()=>document.querySelector('.panel__name').textContent==='Barberries')
     const r=await page.locator('.loop__stage').boundingBox()
     await page.mouse.move(r.x+r.width/2,r.y+r.height/2)
     await page.mouse.down()
-    await page.mouse.move(r.x+r.width/2-140,r.y+r.height/2,{steps:10})
+    const ring = await page.locator('.loop').getAttribute('data-layout') === 'ring'
+    await page.mouse.move(r.x+r.width/2-(ring?0:140),r.y+r.height/2-(ring?140:0),{steps:10})
     await page.mouse.up()
     await page.waitForFunction(()=>document.querySelector('.panel__name').textContent==='Pistachios')
    }

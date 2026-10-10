@@ -32,7 +32,7 @@ export default function ProductPanel({ product, weights, setWeight, index, count
   const inOrder = cart.gramsOf(product.id)
 
   return (
-    <div className="panel" key={product.id}>
+    <div className="panel" key={product.id} data-product-id={product.id}>
       <header className="panel__head">
         <p className="panel__count">
           <span>{String(index + 1).padStart(2, '0')}</span>

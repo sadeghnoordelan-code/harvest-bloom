@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Atmosphere from './Atmosphere.jsx'
 import ProductPanel from './ProductPanel.jsx'
 import { DEFAULT_WEIGHT, IMAGE_SIZE, products } from '../data/products.js'
@@ -13,7 +13,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion.js'
  * Scroll drives it. The track is one step of scroll per lot on top of the
  * pinned viewport: scrolling down walks the lots forward and then releases to
  * the order section, and scrolling back up walks them in reverse and leaves for
- * the story. Nothing captures the wheel, so the page is never held.
+ * the story. At either end the wheel continues scrolling the page.
  *
  * Clicking a pack, a name in the index or an arrow scrolls to that lot rather
  * than setting a second piece of state — the scroll position *is* the state, so
@@ -34,10 +34,37 @@ export default function ProductLoop() {
   // screen, and pinning it would put the add-to-order button out of reach.
   const pinned = useMediaQuery('(min-width: 1101px) and (min-height: 700px)')
 
-  const { stageRef, itemRefs, activeIndex, geometry, setProgress, setIndex, consumedDrag } =
+  const { stageRef, itemRefs, activeIndex, geometry, setProgress, setIndex, stepIndex, consumedDrag } =
     useLoopEngine({ count: products.length, layout, reduced, pinned })
 
   const trackRef = useScrollProgress(setProgress, pinRef)
+
+  // Short and stacked layouts still support a mouse wheel over the collection.
+  // At either end, the gesture returns to ordinary page scrolling.
+  useEffect(() => {
+    if (pinned) return
+    const body = pinRef.current?.querySelector('.collection__body')
+    if (!body) return
+    let total = 0
+    let last = 0
+    const onWheel = (e) => {
+      if (e.ctrlKey || !e.deltaY || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
+      const now = performance.now()
+      if (now - last > 180 || Math.sign(total) !== Math.sign(e.deltaY)) total = 0
+      last = now
+      const pixels = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1)
+      total += pixels
+      const dir = Math.sign(total)
+      if (Math.abs(total) < 60) {
+        if ((dir > 0 && activeIndex < products.length - 1) || (dir < 0 && activeIndex > 0)) e.preventDefault()
+        return
+      }
+      total = 0
+      if (stepIndex(dir)) e.preventDefault()
+    }
+    body.addEventListener('wheel', onWheel, { passive: false })
+    return () => body.removeEventListener('wheel', onWheel)
+  }, [pinned, activeIndex, stepIndex])
 
   // Weight is remembered per product for the length of the visit.
   const [weights, setWeights] = useState(() =>

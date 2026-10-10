@@ -11,7 +11,8 @@
     "assets": "vite --mode assets --open /tools/cutout/index.html",
     "build:single": "vite build && node tools/build-preview.mjs",
     "test:browser": "node tests/browser-check.mjs",
-    "test": "node tests/unit-check.mjs"
+    "test": "node tests/unit-check.mjs",
+    "test:wheel": "node tests/wheel-check.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",

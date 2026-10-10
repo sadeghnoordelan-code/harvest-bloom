@@ -105,7 +105,7 @@ export function useLoopEngine({ count, layout = 'ring', reduced = false, pinned 
   const setProgress = useCallback(
     (p) => {
       if (!pinned) return
-      target.current = clamp(p, 0, 1) * (count - 1)
+      target.current = Math.round(clamp(p, 0, 1) * (count - 1))
     },
     [count, pinned],
   )
@@ -117,6 +117,14 @@ export function useLoopEngine({ count, layout = 'ring', reduced = false, pinned 
     },
     [count],
   )
+
+  // Wheel steps use the motion target so rapid input cannot race React state.
+  const stepIndex = useCallback((dir) => {
+    const next = clamp(Math.round(target.current) + dir, 0, count - 1)
+    if (next === target.current) return false
+    target.current = next
+    return true
+  }, [count])
 
   /* ---- geometry ---------------------------------------------------------- */
   useLayoutEffect(() => {
@@ -181,7 +189,7 @@ export function useLoopEngine({ count, layout = 'ring', reduced = false, pinned 
 
     const tick = (now) => {
       raf = requestAnimationFrame(tick)
-      const dt = Math.min((now - last) / 1000, 0.05)
+      const dt = Math.min((now - last) / 1000, 0.25)
       last = now
 
       // Reduced motion takes the smoothing away, not the sequence: the packs
@@ -275,5 +283,5 @@ export function useLoopEngine({ count, layout = 'ring', reduced = false, pinned 
     return was
   }, [])
 
-  return { stageRef, itemRefs, activeIndex, geometry, setProgress, setIndex, consumedDrag }
+  return { stageRef, itemRefs, activeIndex, geometry, setProgress, setIndex, stepIndex, consumedDrag }
 }
